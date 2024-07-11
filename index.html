@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary-color: #bb86fc;
+            --primary-color: #4a90e2;
             --secondary-color: #03dac6;
             --background-color: #121212;
             --surface-color: #1e1e1e;
@@ -29,13 +29,18 @@
             color: var(--primary-color);
             text-align: center;
         }
-        form {
+        form, #sortingControls {
             display: grid;
             gap: 15px;
             background-color: var(--surface-color);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        #sortingControls {
+            grid-template-columns: 1fr auto;
+            align-items: center;
         }
         label {
             font-weight: bold;
@@ -51,6 +56,10 @@
             background-color: var(--background-color);
             color: var(--on-background);
             box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
         }
         button {
             cursor: pointer;
@@ -95,7 +104,11 @@
             border-bottom: 1px solid var(--primary-color);
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+        }
+        .entry-content {
+            flex-grow: 1;
+            margin-right: 10px;
         }
         .remove-btn {
             padding: 5px 10px;
@@ -112,14 +125,14 @@
 <body>
     <h1>Windshield Parts Audit</h1>
     <form id="auditForm">
-        <label for="partNumber">Part Number:</label>
-        <input type="text" id="partNumber">
+        <label for="partNumber">Part Number (All Caps):</label>
+        <input type="text" id="partNumber" oninput="this.value = this.value.toUpperCase()">
         
         <label for="date">Date on Label:</label>
         <input type="date" id="date">
         
-        <label for="workOrder">Work Order Number (7 digits if entered):</label>
-        <input type="text" id="workOrder" pattern="\d{7}|\d{0}">
+        <label for="workOrder">Work Order Number (7 digits):</label>
+        <input type="text" id="workOrder" maxlength="7" pattern="\d{7}" oninput="this.value = this.value.replace(/\D/g, '')">
         
         <label for="customerName">Customer Name:</label>
         <input type="text" id="customerName">
@@ -127,8 +140,19 @@
         <label for="glassLocation">Glass Location:</label>
         <input type="text" id="glassLocation">
         
+        <label for="notes">Notes:</label>
+        <textarea id="notes"></textarea>
+        
         <button type="submit" id="addEntryBtn">Add Entry</button>
     </form>
+
+    <div id="sortingControls">
+        <select id="sortCriteria">
+            <option value="date">Sort by Date</option>
+            <option value="workOrder">Sort by Work Order</option>
+        </select>
+        <button id="sortOrderBtn" onclick="toggleSortOrder()">▲</button>
+    </div>
 
     <div class="action-buttons">
         <button onclick="generateSpreadsheet()">Generate Spreadsheet</button>
@@ -148,12 +172,13 @@
 
     <script>
         let auditData = [];
+        let sortAscending = true;
 
         document.getElementById('auditForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const workOrder = document.getElementById('workOrder').value;
-            if (workOrder && workOrder.length !== 7) {
-                alert('Work Order Number must be 7 digits if entered.');
+            if (workOrder.length !== 7) {
+                alert('Work Order Number must be exactly 7 digits.');
                 return;
             }
             const entry = {
@@ -161,32 +186,54 @@
                 date: document.getElementById('date').value,
                 workOrder: workOrder,
                 customerName: document.getElementById('customerName').value,
-                glassLocation: document.getElementById('glassLocation').value
+                glassLocation: document.getElementById('glassLocation').value,
+                notes: document.getElementById('notes').value
             };
             auditData.push(entry);
-            updateAuditList();
+            sortAndUpdateAuditList();
             this.reset();
         });
+
+        function sortAndUpdateAuditList() {
+            const sortCriteria = document.getElementById('sortCriteria').value;
+            auditData.sort((a, b) => {
+                if (sortCriteria === 'date') {
+                    return sortAscending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+                } else {
+                    return sortAscending ? a.workOrder.localeCompare(b.workOrder) : b.workOrder.localeCompare(a.workOrder);
+                }
+            });
+            updateAuditList();
+        }
 
         function updateAuditList() {
             const list = document.getElementById('auditList');
             list.innerHTML = '<h3>Audit Entries:</h3>' + auditData.map((entry, index) => 
                 `<div class="entry">
-                    <div>
+                    <div class="entry-content">
                         ${index + 1}. ${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}
                         ${entry.date ? `Date on Label: ${entry.date}, ` : ''}
                         ${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}
                         ${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}
                         ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}
+                        ${entry.notes ? `<br>Notes: ${entry.notes}` : ''}
                     </div>
                     <button class="remove-btn" onclick="removeEntry(${index})">Remove</button>
                 </div>`
             ).join('');
         }
 
+        function toggleSortOrder() {
+            sortAscending = !sortAscending;
+            document.getElementById('sortOrderBtn').textContent = sortAscending ? '▲' : '▼';
+            sortAndUpdateAuditList();
+        }
+
+        document.getElementById('sortCriteria').addEventListener('change', sortAndUpdateAuditList);
+
         function removeEntry(index) {
             auditData.splice(index, 1);
-            updateAuditList();
+            sortAndUpdateAuditList();
         }
 
         function clearAllEntries() {
@@ -197,7 +244,16 @@
         }
 
         function generateSpreadsheet() {
-            const worksheet = XLSX.utils.json_to_sheet(auditData);
+            const sortedData = [...auditData].sort((a, b) => {
+                const sortCriteria = document.getElementById('sortCriteria').value;
+                if (sortCriteria === 'date') {
+                    return sortAscending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+                } else {
+                    return sortAscending ? a.workOrder.localeCompare(b.workOrder) : b.workOrder.localeCompare(a.workOrder);
+                }
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(sortedData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Data");
             XLSX.writeFile(workbook, "windshield_audit.xlsx");
@@ -212,7 +268,7 @@
             const savedData = localStorage.getItem('auditData');
             if (savedData) {
                 auditData = JSON.parse(savedData);
-                updateAuditList();
+                sortAndUpdateAuditList();
                 alert('Progress loaded from browser storage!');
             } else {
                 alert('No saved progress found in browser storage.');
@@ -239,7 +295,8 @@
                 ${entry.date ? `Date on Label: ${entry.date}, ` : ''}
                 ${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}
                 ${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}
-                ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}`
+                ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}
+                ${entry.notes ? `Notes: ${entry.notes}` : ''}`
             ).join('\n\n'));
             
             window.location.href = `mailto:${emailAddress}?subject=${subject}&body=${body}`;
