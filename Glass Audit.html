@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2487.6">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="en"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Windshield Parts Audit&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>:root {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>--primary-color: #3498db;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>--secondary-color: #2ecc71;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>--danger-color: #e74c3c;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>--background-color: #ecf0f1;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>--text-color: #34495e;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>max-width: 800px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin: 0 auto;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: var(--background-color);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: var(--text-color);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>h1 {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: var(--primary-color);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>form {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: grid;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 15px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: white;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 10px rgba(0,0,0,0.1);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>label {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>input {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #ddd;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>button {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 10px 15px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: background-color 0.3s;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>button:hover {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>opacity: 0.9;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#addEntryBtn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: var(--secondary-color);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.action-buttons {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: grid;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 10px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.action-buttons button {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: var(--primary-color);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#clearAllBtn, .remove-btn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: var(--danger-color);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#auditList {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: white;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 10px rgba(0,0,0,0.1);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.entry {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 15px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 10px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-bottom: 1px solid #eee;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.remove-btn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 5px 10px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#emailForm {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Windshield Parts Audit&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;form id="auditForm"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;label for="partNumber"&gt;Part Number:&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="text" id="partNumber"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;label for="date"&gt;Date on Label:&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="date" id="date"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;label for="workOrder"&gt;Work Order Number (7 digits if entered):&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="text" id="workOrder" pattern="\d{7}|\d{0}"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;label for="customerName"&gt;Customer Name:&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="text" id="customerName"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;label for="glassLocation"&gt;Glass Location:&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="text" id="glassLocation"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button type="submit" id="addEntryBtn"&gt;Add Entry&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/form&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="action-buttons"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button onclick="generateSpreadsheet()"&gt;Generate Spreadsheet&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button onclick="saveProgress()"&gt;Save Progress&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button onclick="loadProgress()"&gt;Load Progress&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button id="clearAllBtn" onclick="clearAllEntries()"&gt;Clear All Entries&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button onclick="showEmailForm()"&gt;Email Results&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="emailForm"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;label for="emailAddress"&gt;Email Address:&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="email" id="emailAddress" required&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button onclick="sendEmail()" style="background-color: var(--primary-color);"&gt;Send Email&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="auditList"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let auditData = [];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('auditForm').addEventListener('submit', function(e) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>e.preventDefault();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const workOrder = document.getElementById('workOrder').value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (workOrder &amp;&amp; workOrder.length !== 7) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>alert('Work Order Number must be 7 digits if entered.');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const entry = {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>partNumber: document.getElementById('partNumber').value,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>date: document.getElementById('date').value,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>workOrder: workOrder,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>customerName: document.getElementById('customerName').value,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>glassLocation: document.getElementById('glassLocation').value</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p1"><span class="Apple-converted-space">            </span>auditData.push(entry);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>updateAuditList();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>this.reset();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function updateAuditList() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const list = document.getElementById('auditList');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>list.innerHTML = '&lt;h3&gt;Audit Entries:&lt;/h3&gt;' + auditData.map((entry, index) =&gt;<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>`&lt;div class="entry"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>${index + 1}. ${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>${entry.date ? `Date on Label: ${entry.date}, ` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button class="remove-btn" onclick="removeEntry(${index})"&gt;Remove&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">            </span>).join('');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function removeEntry(index) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>auditData.splice(index, 1);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>updateAuditList();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function clearAllEntries() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (confirm("Are you sure you want to clear all entries? This action cannot be undone.")) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>auditData = [];</p>
+<p class="p1"><span class="Apple-converted-space">                </span>updateAuditList();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function generateSpreadsheet() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const worksheet = XLSX.utils.json_to_sheet(auditData);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const workbook = XLSX.utils.book_new();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Data");</p>
+<p class="p1"><span class="Apple-converted-space">            </span>XLSX.writeFile(workbook, "windshield_audit.xlsx");</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function saveProgress() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>localStorage.setItem('auditData', JSON.stringify(auditData));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>alert('Progress saved!');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function loadProgress() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const savedData = localStorage.getItem('auditData');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (savedData) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>auditData = JSON.parse(savedData);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>updateAuditList();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>alert('Progress loaded!');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>alert('No saved progress found.');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function showEmailForm() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('emailForm').style.display = 'block';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function sendEmail() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const emailAddress = document.getElementById('emailAddress').value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!emailAddress) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>alert('Please enter an email address.');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>emailResults(emailAddress);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function emailResults(emailAddress) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const subject = encodeURIComponent("Windshield Parts Audit Results");</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const body = encodeURIComponent(auditData.map(entry =&gt;<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>`${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>${entry.date ? `Date on Label: ${entry.date}, ` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}`</p>
+<p class="p1"><span class="Apple-converted-space">            </span>).join('\n\n'));</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>window.location.href = `mailto:${emailAddress}?subject=${subject}&amp;body=${body}`;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
