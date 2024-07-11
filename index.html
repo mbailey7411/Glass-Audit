@@ -1,8 +1,8 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Windshield Parts Audit</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <style>
@@ -20,6 +20,7 @@
             padding: 20px;
             background-color: var(--background-color);
             color: var(--text-color);
+            font-size: 16px;
         }
         h1 {
             color: var(--primary-color);
@@ -35,12 +36,14 @@
         }
         label {
             font-weight: bold;
+            font-size: 16px;
         }
-        input {
+        input, select, textarea {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 16px;
         }
         button {
             cursor: pointer;
@@ -50,6 +53,7 @@
             border-radius: 4px;
             font-weight: bold;
             transition: background-color 0.3s;
+            font-size: 16px;
         }
         button:hover {
             opacity: 0.9;
@@ -189,7 +193,7 @@
 
         function saveProgress() {
             localStorage.setItem('auditData', JSON.stringify(auditData));
-            alert('Progress saved!');
+            alert('Progress saved to browser storage!');
         }
 
         function loadProgress() {
@@ -197,9 +201,9 @@
             if (savedData) {
                 auditData = JSON.parse(savedData);
                 updateAuditList();
-                alert('Progress loaded!');
+                alert('Progress loaded from browser storage!');
             } else {
-                alert('No saved progress found.');
+                alert('No saved progress found in browser storage.');
             }
         }
 
