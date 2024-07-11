@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windshield Parts Audit</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+        }
+        form {
+            display: grid;
+            gap: 15px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        label {
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            cursor: pointer;
+            padding: 10px 15px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #addEntryBtn {
+            background-color: var(--secondary-color);
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .action-buttons button {
+            background-color: var(--primary-color);
+        }
+        #clearAllBtn, .remove-btn {
+            background-color: var(--danger-color);
+        }
+        #auditList {
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-btn {
+            padding: 5px 10px;
+        }
+        #emailForm {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Windshield Parts Audit</h1>
+    <form id="auditForm">
+        <label for="partNumber">Part Number:</label>
+        <input type="text" id="partNumber">
+        
+        <label for="date">Date on Label:</label>
+        <input type="date" id="date">
+        
+        <label for="workOrder">Work Order Number (7 digits if entered):</label>
+        <input type="text" id="workOrder" pattern="\d{7}|\d{0}">
+        
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName">
+        
+        <label for="glassLocation">Glass Location:</label>
+        <input type="text" id="glassLocation">
+        
+        <button type="submit" id="addEntryBtn">Add Entry</button>
+    </form>
+
+    <div class="action-buttons">
+        <button onclick="generateSpreadsheet()">Generate Spreadsheet</button>
+        <button onclick="saveProgress()">Save Progress</button>
+        <button onclick="loadProgress()">Load Progress</button>
+        <button id="clearAllBtn" onclick="clearAllEntries()">Clear All Entries</button>
+        <button onclick="showEmailForm()">Email Results</button>
+    </div>
+
+    <div id="emailForm">
+        <label for="emailAddress">Email Address:</label>
+        <input type="email" id="emailAddress" required>
+        <button onclick="sendEmail()" style="background-color: var(--primary-color);">Send Email</button>
+    </div>
+
+    <div id="auditList"></div>
+
+    <script>
+        let auditData = [];
+
+        document.getElementById('auditForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const workOrder = document.getElementById('workOrder').value;
+            if (workOrder && workOrder.length !== 7) {
+                alert('Work Order Number must be 7 digits if entered.');
+                return;
+            }
+            const entry = {
+                partNumber: document.getElementById('partNumber').value,
+                date: document.getElementById('date').value,
+                workOrder: workOrder,
+                customerName: document.getElementById('customerName').value,
+                glassLocation: document.getElementById('glassLocation').value
+            };
+            auditData.push(entry);
+            updateAuditList();
+            this.reset();
+        });
+
+        function updateAuditList() {
+            const list = document.getElementById('auditList');
+            list.innerHTML = '<h3>Audit Entries:</h3>' + auditData.map((entry, index) => 
+                `<div class="entry">
+                    <div>
+                        ${index + 1}. ${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}
+                        ${entry.date ? `Date on Label: ${entry.date}, ` : ''}
+                        ${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}
+                        ${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}
+                        ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}
+                    </div>
+                    <button class="remove-btn" onclick="removeEntry(${index})">Remove</button>
+                </div>`
+            ).join('');
+        }
+
+        function removeEntry(index) {
+            auditData.splice(index, 1);
+            updateAuditList();
+        }
+
+        function clearAllEntries() {
+            if (confirm("Are you sure you want to clear all entries? This action cannot be undone.")) {
+                auditData = [];
+                updateAuditList();
+            }
+        }
+
+        function generateSpreadsheet() {
+            const worksheet = XLSX.utils.json_to_sheet(auditData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Data");
+            XLSX.writeFile(workbook, "windshield_audit.xlsx");
+        }
+
+        function saveProgress() {
+            localStorage.setItem('auditData', JSON.stringify(auditData));
+            alert('Progress saved!');
+        }
+
+        function loadProgress() {
+            const savedData = localStorage.getItem('auditData');
+            if (savedData) {
+                auditData = JSON.parse(savedData);
+                updateAuditList();
+                alert('Progress loaded!');
+            } else {
+                alert('No saved progress found.');
+            }
+        }
+
+        function showEmailForm() {
+            document.getElementById('emailForm').style.display = 'block';
+        }
+
+        function sendEmail() {
+            const emailAddress = document.getElementById('emailAddress').value;
+            if (!emailAddress) {
+                alert('Please enter an email address.');
+                return;
+            }
+            emailResults(emailAddress);
+        }
+
+        function emailResults(emailAddress) {
+            const subject = encodeURIComponent("Windshield Parts Audit Results");
+            const body = encodeURIComponent(auditData.map(entry => 
+                `${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}
+                ${entry.date ? `Date on Label: ${entry.date}, ` : ''}
+                ${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}
+                ${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}
+                ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}`
+            ).join('\n\n'));
+            
+            window.location.href = `mailto:${emailAddress}?subject=${subject}&body=${body}`;
+        }
+    </script>
+</body>
+</html>
