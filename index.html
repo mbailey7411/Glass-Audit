@@ -2,116 +2,304 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV Processor</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Windshield Parts Audit</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #03dac6;
+            --background-color: #121212;
+            --surface-color: #1e1e1e;
+            --error-color: #cf6679;
+            --on-primary: #000000;
+            --on-background: #ffffff;
+            --on-surface: #ffffff;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: var(--background-color);
+            color: var(--on-background);
+            font-size: 16px;
         }
         h1 {
+            color: var(--primary-color);
             text-align: center;
         }
-        #fileInput, #downloadBtn {
-            display: block;
-            margin: 20px auto;
+        form, #sortingControls {
+            display: grid;
+            gap: 15px;
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
-        #output {
+        #sortingControls {
+            grid-template-columns: 1fr auto;
+            align-items: center;
+        }
+        label {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--on-surface);
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: var(--background-color);
+            color: var(--on-background);
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            cursor: pointer;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: opacity 0.3s;
+            font-size: 16px;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        #addEntryBtn {
+            background-color: var(--secondary-color);
+            color: var(--on-primary);
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
             margin-top: 20px;
-            text-align: center;
+        }
+        .action-buttons button {
+            background-color: var(--primary-color);
+            color: var(--on-primary);
+        }
+        #clearAllBtn, .remove-btn {
+            background-color: var(--error-color);
+            color: var(--on-primary);
+        }
+        #auditList {
+            margin-top: 20px;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .entry-content {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .remove-btn {
+            padding: 5px 10px;
+        }
+        #emailForm {
+            display: none;
+            margin-top: 20px;
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
-    <h1>CSV Processor</h1>
-    <input type="file" id="fileInput" accept=".csv">
-    <button id="downloadBtn" style="display: none;">Download Processed CSV</button>
-    <div id="output"></div>
+    <h1>Windshield Parts Audit</h1>
+    <form id="auditForm">
+        <label for="partNumber">Part Number (All Caps):</label>
+        <input type="text" id="partNumber" oninput="this.value = this.value.toUpperCase()">
+        
+        <label for="date">Date on Label:</label>
+        <input type="date" id="date">
+        
+        <label for="workOrder">Work Order Number (7 digits):</label>
+        <input type="text" id="workOrder" maxlength="7" pattern="\d{7}" oninput="this.value = this.value.replace(/\D/g, '')">
+        
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName">
+        
+        <label for="glassLocation">Glass Location:</label>
+        <input type="text" id="glassLocation">
+        
+        <label for="notes">Notes:</label>
+        <textarea id="notes"></textarea>
+        
+        <button type="submit" id="addEntryBtn">Add Entry</button>
+    </form>
+
+    <div id="sortingControls">
+        <select id="sortCriteria">
+            <option value="date">Sort by Date</option>
+            <option value="workOrder">Sort by Work Order</option>
+        </select>
+        <button id="sortOrderBtn" onclick="toggleSortOrder()">▲</button>
+    </div>
+
+    <div class="action-buttons">
+        <button onclick="generateSpreadsheet()">Generate Spreadsheet</button>
+        <button onclick="saveProgress()">Save Progress</button>
+        <button onclick="loadProgress()">Load Progress</button>
+        <button id="clearAllBtn" onclick="clearAllEntries()">Clear All Entries</button>
+        <button onclick="showEmailForm()">Email Results</button>
+    </div>
+
+    <div id="emailForm">
+        <label for="emailAddress">Email Address:</label>
+        <input type="email" id="emailAddress" required>
+        <button onclick="sendEmail()">Send Email</button>
+    </div>
+
+    <div id="auditList"></div>
 
     <script>
-        let processedCsv = null;
+        let auditData = [];
+        let sortAscending = true;
 
-        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-        document.getElementById('downloadBtn').addEventListener('click', downloadCsv);
+        document.getElementById('auditForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const workOrder = document.getElementById('workOrder').value;
+            if (workOrder.length !== 7) {
+                alert('Work Order Number must be exactly 7 digits.');
+                return;
+            }
+            const entry = {
+                partNumber: document.getElementById('partNumber').value,
+                date: document.getElementById('date').value,
+                workOrder: workOrder,
+                customerName: document.getElementById('customerName').value,
+                glassLocation: document.getElementById('glassLocation').value,
+                notes: document.getElementById('notes').value
+            };
+            auditData.push(entry);
+            sortAndUpdateAuditList();
+            this.reset();
+        });
 
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            Papa.parse(file, {
-                complete: function(results) {
-                    processData(results.data);
-                },
-                error: function(error) {
-                    console.error('Error parsing CSV:', error);
-                    document.getElementById('output').innerHTML = 'Error parsing CSV file. Please check the file and try again.';
+        function sortAndUpdateAuditList() {
+            const sortCriteria = document.getElementById('sortCriteria').value;
+            auditData.sort((a, b) => {
+                if (sortCriteria === 'date') {
+                    return sortAscending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+                } else {
+                    return sortAscending ? a.workOrder.localeCompare(b.workOrder) : b.workOrder.localeCompare(a.workOrder);
                 }
             });
+            updateAuditList();
         }
 
-        function processData(data) {
-            try {
-                // Find the indices of the required columns
-                const headers = data[0];
-                const installNotesIndex = headers.indexOf('Install Notes');
-                const partsIndex = headers.indexOf('Parts');
-                const jobNumberIndex = headers.indexOf('Job #');
+        function updateAuditList() {
+            const list = document.getElementById('auditList');
+            list.innerHTML = '<h3>Audit Entries:</h3>' + auditData.map((entry, index) => 
+                `<div class="entry">
+                    <div class="entry-content">
+                        ${index + 1}. ${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}
+                        ${entry.date ? `Date on Label: ${entry.date}, ` : ''}
+                        ${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}
+                        ${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}
+                        ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}
+                        ${entry.notes ? `<br>Notes: ${entry.notes}` : ''}
+                    </div>
+                    <button class="remove-btn" onclick="removeEntry(${index})">Remove</button>
+                </div>`
+            ).join('');
+        }
 
-                if (installNotesIndex === -1 || partsIndex === -1 || jobNumberIndex === -1) {
-                    throw new Error('Required columns not found in CSV');
+        function toggleSortOrder() {
+            sortAscending = !sortAscending;
+            document.getElementById('sortOrderBtn').textContent = sortAscending ? '▲' : '▼';
+            sortAndUpdateAuditList();
+        }
+
+        document.getElementById('sortCriteria').addEventListener('change', sortAndUpdateAuditList);
+
+        function removeEntry(index) {
+            auditData.splice(index, 1);
+            sortAndUpdateAuditList();
+        }
+
+        function clearAllEntries() {
+            if (confirm("Are you sure you want to clear all entries? This action cannot be undone.")) {
+                auditData = [];
+                updateAuditList();
+            }
+        }
+
+        function generateSpreadsheet() {
+            const sortedData = [...auditData].sort((a, b) => {
+                const sortCriteria = document.getElementById('sortCriteria').value;
+                if (sortCriteria === 'date') {
+                    return sortAscending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+                } else {
+                    return sortAscending ? a.workOrder.localeCompare(b.workOrder) : b.workOrder.localeCompare(a.workOrder);
                 }
+            });
 
-                // Filter and process the data
-                const processedData = data.slice(1).map(row => {
-                    const installNotes = row[installNotesIndex] || '';
-                    const parts = row[partsIndex] ? processParts(row[partsIndex]) : '';
-                    const jobNumber = row[jobNumberIndex] || '';
-                    return [installNotes, parts, jobNumber];
-                }).filter(row => row.some(cell => cell !== '')); // Remove rows where all cells are empty
-
-                // Sort by Install Notes column
-                processedData.sort((a, b) => a[0].localeCompare(b[0]));
-
-                // Add headers to the processed data
-                processedData.unshift(['Install Notes', 'Parts', 'Job #']);
-
-                // Generate CSV content
-                processedCsv = Papa.unparse(processedData);
-
-                // Show download button
-                document.getElementById('downloadBtn').style.display = 'block';
-                document.getElementById('output').innerHTML = 'CSV processed successfully. Click the download button to save the file.';
-            } catch (error) {
-                console.error('Error processing data:', error);
-                document.getElementById('output').innerHTML = 'Error processing CSV data: ' + error.message;
-            }
+            const worksheet = XLSX.utils.json_to_sheet(sortedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Data");
+            XLSX.writeFile(workbook, "windshield_audit.xlsx");
         }
 
-        function processParts(partsString) {
-            // Remove all occurrences of "HAH" followed by any characters up to the next comma or end of string
-            const cleanedString = partsString.replace(/HAH[^,]*,?/g, '');
-            
-            // Split the cleaned string by commas
-            const parts = cleanedString.split(',');
-            
-            // Trim whitespace from each part and filter out empty parts
-            const filteredParts = parts
-                .map(part => part.trim())
-                .filter(part => part !== '');
-            
-            // Join the filtered parts back into a string
-            return filteredParts.join(', ');
+        function saveProgress() {
+            localStorage.setItem('auditData', JSON.stringify(auditData));
+            alert('Progress saved to browser storage!');
         }
 
-        function downloadCsv() {
-            if (processedCsv) {
-                const blob = new Blob([processedCsv], { type: 'text/csv;charset=utf-8;' });
-                saveAs(blob, 'processed_data.csv');
+        function loadProgress() {
+            const savedData = localStorage.getItem('auditData');
+            if (savedData) {
+                auditData = JSON.parse(savedData);
+                sortAndUpdateAuditList();
+                alert('Progress loaded from browser storage!');
             } else {
-                document.getElementById('output').innerHTML = 'No processed CSV data available. Please upload and process a CSV file first.';
+                alert('No saved progress found in browser storage.');
             }
+        }
+
+        function showEmailForm() {
+            document.getElementById('emailForm').style.display = 'block';
+        }
+
+        function sendEmail() {
+            const emailAddress = document.getElementById('emailAddress').value;
+            if (!emailAddress) {
+                alert('Please enter an email address.');
+                return;
+            }
+            emailResults(emailAddress);
+        }
+
+        function emailResults(emailAddress) {
+            const subject = encodeURIComponent("Windshield Parts Audit Results");
+            const body = encodeURIComponent(auditData.map(entry => 
+                `${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}
+                ${entry.date ? `Date on Label: ${entry.date}, ` : ''}
+                ${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}
+                ${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}
+                ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}
+                ${entry.notes ? `Notes: ${entry.notes}` : ''}`
+            ).join('\n\n'));
+            
+            window.location.href = `mailto:${emailAddress}?subject=${subject}&body=${body}`;
         }
     </script>
 </body>
