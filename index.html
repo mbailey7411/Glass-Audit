@@ -110,8 +110,13 @@
             flex-grow: 1;
             margin-right: 10px;
         }
-        .remove-btn {
+        .remove-btn, .edit-btn {
             padding: 5px 10px;
+        }
+        .edit-btn {
+            background-color: var(--secondary-color);
+            color: var(--on-primary);
+            margin-right: 5px;
         }
         #emailForm {
             display: none;
@@ -148,8 +153,9 @@
 
     <div id="sortingControls">
         <select id="sortCriteria">
+            <option value="entryOrder">Sort by Entry Order</option>
             <option value="date">Sort by Date</option>
-            <option value="workOrder">Sort by Work Order</option>
+            <option value="glassLocation">Sort by Glass Location</option>
         </select>
         <button id="sortOrderBtn" onclick="toggleSortOrder()">▲</button>
     </div>
@@ -173,6 +179,7 @@
     <script>
         let auditData = [];
         let sortAscending = true;
+        let editingIndex = -1;
 
         document.getElementById('auditForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -187,9 +194,18 @@
                 workOrder: workOrder,
                 customerName: document.getElementById('customerName').value,
                 glassLocation: document.getElementById('glassLocation').value,
-                notes: document.getElementById('notes').value
+                notes: document.getElementById('notes').value,
+                entryOrder: editingIndex === -1 ? auditData.length : editingIndex
             };
-            auditData.push(entry);
+            
+            if (editingIndex === -1) {
+                auditData.push(entry);
+            } else {
+                auditData[editingIndex] = entry;
+                editingIndex = -1;
+                document.getElementById('addEntryBtn').textContent = 'Add Entry';
+            }
+            
             sortAndUpdateAuditList();
             this.reset();
         });
@@ -199,8 +215,10 @@
             auditData.sort((a, b) => {
                 if (sortCriteria === 'date') {
                     return sortAscending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
-                } else {
-                    return sortAscending ? a.workOrder.localeCompare(b.workOrder) : b.workOrder.localeCompare(a.workOrder);
+                } else if (sortCriteria === 'glassLocation') {
+                    return sortAscending ? a.glassLocation.localeCompare(b.glassLocation) : b.glassLocation.localeCompare(a.glassLocation);
+                } else { // 'entryOrder'
+                    return sortAscending ? a.entryOrder - b.entryOrder : b.entryOrder - a.entryOrder;
                 }
             });
             updateAuditList();
@@ -218,9 +236,25 @@
                         ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}
                         ${entry.notes ? `<br>Notes: ${entry.notes}` : ''}
                     </div>
-                    <button class="remove-btn" onclick="removeEntry(${index})">Remove</button>
+                    <div>
+                        <button class="edit-btn" onclick="editEntry(${index})">Edit</button>
+                        <button class="remove-btn" onclick="removeEntry(${index})">Remove</button>
+                    </div>
                 </div>`
             ).join('');
+        }
+
+        function editEntry(index) {
+            const entry = auditData[index];
+            document.getElementById('partNumber').value = entry.partNumber;
+            document.getElementById('date').value = entry.date;
+            document.getElementById('workOrder').value = entry.workOrder;
+            document.getElementById('customerName').value = entry.customerName;
+            document.getElementById('glassLocation').value = entry.glassLocation;
+            document.getElementById('notes').value = entry.notes;
+            
+            editingIndex = index;
+            document.getElementById('addEntryBtn').textContent = 'Update Entry';
         }
 
         function toggleSortOrder() {
@@ -248,8 +282,10 @@
                 const sortCriteria = document.getElementById('sortCriteria').value;
                 if (sortCriteria === 'date') {
                     return sortAscending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
-                } else {
-                    return sortAscending ? a.workOrder.localeCompare(b.workOrder) : b.workOrder.localeCompare(a.workOrder);
+                } else if (sortCriteria === 'glassLocation') {
+                    return sortAscending ? a.glassLocation.localeCompare(b.glassLocation) : b.glassLocation.localeCompare(a.glassLocation);
+                } else { // 'entryOrder'
+                    return sortAscending ? a.entryOrder - b.entryOrder : b.entryOrder - a.entryOrder;
                 }
             });
 
