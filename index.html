@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Windshield Parts Audit</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #03dac6;
+            --background-color: #121212;
+            --surface-color: #1e1e1e;
+            --error-color: #cf6679;
+            --on-primary: #000000;
+            --on-background: #ffffff;
+            --on-surface: #ffffff;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--on-background);
+            font-size: 16px;
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+        }
+        form, #sortingControls {
+            display: grid;
+            gap: 15px;
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        #sortingControls {
+            grid-template-columns: 1fr auto;
+            align-items: center;
+        }
+        label {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--on-surface);
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: var(--background-color);
+            color: var(--on-background);
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            cursor: pointer;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: opacity 0.3s;
+            font-size: 16px;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        #addEntryBtn {
+            background-color: var(--secondary-color);
+            color: var(--on-primary);
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .action-buttons button {
+            background-color: var(--primary-color);
+            color: var(--on-primary);
+        }
+        #clearAllBtn, .remove-btn {
+            background-color: var(--error-color);
+            color: var(--on-primary);
+        }
+        #auditList {
+            margin-top: 20px;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .entry-content {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .remove-btn, .edit-btn {
+            padding: 5px 10px;
+        }
+        .edit-btn {
+            background-color: var(--secondary-color);
+            color: var(--on-primary);
+            margin-right: 5px;
+        }
+        #emailForm {
+            display: none;
+            margin-top: 20px;
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        #qr-reader {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Windshield Parts Audit</h1>
+    <div id="qr-reader"></div>
+    <form id="auditForm">
+        <label for="partNumber">Part Number (All Caps):</label>
+        <input type="text" id="partNumber" oninput="this.value = this.value.toUpperCase()">
+        
+        <label for="date">Date on Label:</label>
+        <input type="date" id="date">
+        
+        <label for="workOrder">Work Order Number (7 digits):</label>
+        <input type="text" id="workOrder" maxlength="7" pattern="\d{7}" oninput="this.value = this.value.replace(/\D/g, '')">
+        
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName">
+        
+        <label for="glassLocation">Glass Location:</label>
+        <input type="text" id="glassLocation">
+        
+        <label for="notes">Notes:</label>
+        <textarea id="notes"></textarea>
+        
+        <button type="submit" id="addEntryBtn">Add Entry</button>
+    </form>
+
+    <div id="sortingControls">
+        <select id="sortCriteria">
+            <option value="entryOrder">Sort by Entry Order</option>
+            <option value="date">Sort by Date</option>
+            <option value="glassLocation">Sort by Glass Location</option>
+        </select>
+        <button id="sortOrderBtn" onclick="toggleSortOrder()">▲</button>
+    </div>
+
+    <div class="action-buttons">
+        <button onclick="generateSpreadsheet()">Generate Spreadsheet</button>
+        <button onclick="saveProgress()">Save Progress</button>
+        <button onclick="loadProgress()">Load Progress</button>
+        <button id="clearAllBtn" onclick="clearAllEntries()">Clear All Entries</button>
+        <button onclick="showEmailForm()">Email Results</button>
+    </div>
+
+    <div id="emailForm">
+        <label for="emailAddress">Email Address:</label>
+        <input type="email" id="emailAddress" required>
+        <button onclick="sendEmail()">Send Email</button>
+    </div>
+
+    <div id="auditList"></div>
+
+    <script>
+        let auditData = [];
+        let sortAscending = true;
+        let editingIndex = -1;
+
+        document.getElementById('auditForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const workOrder = document.getElementById('workOrder').value;
+            if (workOrder.length !== 7) {
+                alert('Work Order Number must be exactly 7 digits.');
+                return;
+            }
+            const entry = {
+                partNumber: document.getElementById('partNumber').value,
+                date: document.getElementById('date').value,
+                workOrder: workOrder,
+                customerName: document.getElementById('customerName').value,
+                glassLocation: document.getElementById('glassLocation').value,
+                notes: document.getElementById('notes').value,
+                entryOrder: editingIndex === -1 ? auditData.length : editingIndex
+            };
+            
+            if (editingIndex === -1) {
+                auditData.push(entry);
+            } else {
+                auditData[editingIndex] = entry;
+                editingIndex = -1;
+                document.getElementById('addEntryBtn').textContent = 'Add Entry';
+            }
+            
+            sortAndUpdateAuditList();
+            this.reset();
+        });
+
+        function sortAndUpdateAuditList() {
+            const sortCriteria = document.getElementById('sortCriteria').value;
+            auditData.sort((a, b) => {
+                if (sortCriteria === 'date') {
+                    return sortAscending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+                } else if (sortCriteria === 'glassLocation') {
+                    return sortAscending ? a.glassLocation.localeCompare(b.glassLocation) : b.glassLocation.localeCompare(a.glassLocation);
+                } else { // 'entryOrder'
+                    return sortAscending ? a.entryOrder - b.entryOrder : b.entryOrder - a.entryOrder;
+                }
+            });
+            updateAuditList();
+        }
+
+        function updateAuditList() {
+            const list = document.getElementById('auditList');
+            list.innerHTML = '<h3>Audit Entries:</h3>' + auditData.map((entry, index) => 
+                `<div class="entry">
+                    <div class="entry-content">
+                        ${index + 1}. ${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}
+                        ${entry.date ? `Date on Label: ${entry.date}, ` : ''}
+                        ${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}
+                        ${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}
+                        ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}
+                        ${entry.notes ? `<br>Notes: ${entry.notes}` : ''}
+                    </div>
+                    <div>
+                        <button class="edit-btn" onclick="editEntry(${index})">Edit</button>
+                        <button class="remove-btn" onclick="removeEntry(${index})">Remove</button>
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        function editEntry(index) {
+            const entry = auditData[index];
+            document.getElementById('partNumber').value = entry.partNumber;
+            document.getElementById('date').value = entry.date;
+            document.getElementById('workOrder').value = entry.workOrder;
+            document.getElementById('customerName').value = entry.customerName;
+            document.getElementById('glassLocation').value = entry.glassLocation;
+            document.getElementById('notes').value = entry.notes;
+            
+            editingIndex = index;
+            document.getElementById('addEntryBtn').textContent = 'Update Entry';
+        }
+
+        function toggleSortOrder() {
+            sortAscending = !sortAscending;
+            document.getElementById('sortOrderBtn').textContent = sortAscending ? '▲' : '▼';
+            sortAndUpdateAuditList();
+        }
+
+        document.getElementById('sortCriteria').addEventListener('change', sortAndUpdateAuditList);
+
+        function removeEntry(index) {
+            auditData.splice(index, 1);
+            sortAndUpdateAuditList();
+        }
+
+        function clearAllEntries() {
+            if (confirm("Are you sure you want to clear all entries? This action cannot be undone.")) {
+                auditData = [];
+                updateAuditList();
+            }
+        }
+
+        function generateSpreadsheet() {
+            const sortedData = [...auditData].sort((a, b) => {
+                const sortCriteria = document.getElementById('sortCriteria').value;
+                if (sortCriteria === 'date') {
+                    return sortAscending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+                } else if (sortCriteria === 'glassLocation') {
+                    return sortAscending ? a.glassLocation.localeCompare(b.glassLocation) : b.glassLocation.localeCompare(a.glassLocation);
+                } else { // 'entryOrder'
+                    return sortAscending ? a.entryOrder - b.entryOrder : b.entryOrder - a.entryOrder;
+                }
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(sortedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Data");
+            XLSX.writeFile(workbook, "windshield_audit.xlsx");
+        }
+
+        function saveProgress() {
+            localStorage.setItem('auditData', JSON.stringify(auditData));
+            alert('Progress saved to browser storage!');
+        }
+
+        function loadProgress() {
+            const savedData = localStorage.getItem('auditData');
+            if (savedData) {
+                auditData = JSON.parse(savedData);
+                sortAndUpdateAuditList();
+                alert('Progress loaded from browser storage!');
+            } else {
+                alert('No saved progress found in browser storage.');
+            }
+        }
+
+        function showEmailForm() {
+            document.getElementById('emailForm').style.display = 'block';
+        }
+
+        function sendEmail() {
+            const emailAddress = document.getElementById('emailAddress').value;
+            if (!emailAddress) {
+                alert('Please enter an email address.');
+                return;
+            }
+            emailResults(emailAddress);
+        }
+
+        function emailResults(emailAddress) {
+            const subject = encodeURIComponent("Windshield Parts Audit Results");
+            const body = encodeURIComponent(auditData.map(entry => 
+                `${entry.partNumber ? `Part: ${entry.partNumber}, ` : ''}
+                ${entry.date ? `Date on Label: ${entry.date}, ` : ''}
+                ${entry.workOrder ? `Work Order: ${entry.workOrder}, ` : ''}
+                ${entry.customerName ? `Customer: ${entry.customerName}, ` : ''}
+                ${entry.glassLocation ? `Location: ${entry.glassLocation}` : ''}
+                ${entry.notes ? `Notes: ${entry.notes}` : ''}`
+            ).join('\n\n'));
+            
+            window.location.href = `mailto:${emailAddress}?subject=${subject}&body=${body}`;
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`Scan result: ${decodedText}`);
+            const qrData = decodedText.split(';');
+            const dataObj = {};
+            qrData.forEach(pair => {
+                const [key, value] = pair.split('=');
+                dataObj[key] = value;
+            });
+
+            document.getElementById('partNumber').value = dataObj.PART || '';
+            document.getElementById('date').value = dataObj.LABELED || '';
+            document.getElementById('workOrder').value = dataObj.ORDER || '';
+            document.getElementById('customerName').value = dataObj.CUSTOMER || '';
+            document.getElementById('glassLocation').value = dataObj.LOCATION || ''; // Assuming LOCATION is part of QR data
+            document.getElementById('notes').value = dataObj.NOTES || ''; // Assuming NOTES is part of QR data
+        }
+
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 }
+            },
+            onScanSuccess
+        ).catch(err => {
+            console.error("Unable to start scanning.", err);
+        });
+    </script>
+</body>
+</html>
