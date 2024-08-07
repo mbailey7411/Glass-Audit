@@ -134,6 +134,9 @@
 </head>
 <body>
     <h1>Windshield Parts Audit</h1>
+
+    <div id="qr-reader"></div>
+
     <form id="auditForm">
         <label for="partNumber">Part Number (All Caps):</label>
         <input type="text" id="partNumber" oninput="this.value = this.value.toUpperCase()">
@@ -155,9 +158,6 @@
         
         <button type="submit" id="addEntryBtn">Add Entry</button>
     </form>
-
-    <button onclick="startQRScanner()">Scan QR Code</button>
-    <div id="qr-reader"></div>
 
     <div id="sortingControls">
         <select id="sortCriteria">
@@ -380,6 +380,9 @@
             document.getElementById('workOrder').value = dataObj.ORDER || '';
             document.getElementById('customerName').value = dataObj.CUSTOMER || '';
         }
+
+        // Automatically start the QR scanner when the page loads
+        window.onload = startQRScanner;
     </script>
 </body>
 </html>
